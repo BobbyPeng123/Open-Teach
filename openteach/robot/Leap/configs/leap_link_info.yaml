@@ -9,7 +9,7 @@ links_info:
   # Index link
   index:
     name: 'Index'
-    link: '0'
+    link: '1'
     offset: 0
     joint_min: 
       - 1.506393677
@@ -25,7 +25,7 @@ links_info:
   # Middle link
   middle:
     name: 'Middle'
-    link: '4'
+    link: '5'
     offset: 4
     joint_min: 
       - 2.442064689
@@ -41,7 +41,7 @@ links_info:
   # Ring link
   ring:
     name: 'Ring'
-    link: '8'
+    link: '9'
     offset: 8
     joint_min: 
       - 2.649235272

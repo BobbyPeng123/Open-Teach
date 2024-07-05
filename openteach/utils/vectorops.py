@@ -19,9 +19,9 @@ def get_distance(start_vector, end_vector):
     return np.linalg.norm(end_vector - start_vector)
 
 def linear_transform(curr_val, source_bound, target_bound):
+    curr_val = max(source_bound[0],min(curr_val,source_bound[1]))
     multiplier = (target_bound[1] - target_bound[0]) / (source_bound[1] - source_bound[0])
     target_val = ((curr_val - source_bound[0]) * multiplier) + target_bound[0]
-    
     return max(target_bound[0],min(target_val,target_bound[1]))# to clip the result so the result is inside the bound
 
 def persperctive_transform(input_coordinates, given_bound, target_bound):

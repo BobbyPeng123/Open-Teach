@@ -1,5 +1,61 @@
 x_coord: 0.054 # Fixing X for 2D movement
+index:
+  -
+    x_bounds: [0.0174591,0.0375424]
+    y_bounds: [-0.0762302,0.0821048]
+    z_bounds: [-0.107889,-0.0195138]
+    projective_bounds:
+      - #Top right
+        - 0.0509640553
+        - 0.12033194
+      - # Top left
+        - 0.0226578
+        - 0.1288781
+      - # Bottom left
+        - -0.00323276
+        - -0.09688505
+      - # Bottom right
+        - 0.0226578
+        - -0.0986447
 
+      
+middle:
+  -
+    x_bounds: [-0.0279909,-0.0177359]
+    y_bounds: [-0.0762302,0.0821048]
+    z_bounds: [-0.107889,-0.0195138]
+    projective_bounds:
+      - #Top right
+        - -0.012983562
+        - 0.126939528
+      - # Top left
+        - -0.0327480383
+        - 0.129816228
+      - # Bottom left
+        - -0.02594544
+        - -0.09459023
+      - # Bottom right
+        - -0.0197861617
+        - -0.09448207283
+
+ring:
+  -
+    x_bounds: [-0.0840656,-0.0631859]
+    y_bounds: [-0.0762302,0.0821048]
+    z_bounds: [-0.107889,-0.0195138]
+    projective_bounds:
+      - #Top right
+        - -0.0682422
+        - 0.1288781
+      - # Top left
+        - -0.0781980383
+        - 0.129816228
+      - # Bottom left
+        - -0.0682422
+        - -0.088369
+      - # Bottom right
+        - -0.0652361617
+        - -0.0880757283
 thumb_bounds:
   # - # thumb_index
   #   x_bounds: [0.0169, 0.117]
@@ -49,17 +105,17 @@ thumb_bounds:
   #       - -0.024
   #       - -0.0087
   - # middle_ring
-    x_bounds: [-0.1465669,-0.00691154] # Here we're getting the smallest limits
+    x_bounds: [-0.1565669,-0.00691154] # Here we're getting the smallest limits
     projective_bounds:
       - # Top right
-        - 0.0765798
+        - 0.1065798
         - 0.0171814
       - # Bottom right
-        - 0.0965623176
+        - 0.1265623176
         - -0.0168611824
       - # ring_bottom
-        - -0.08521114
+        - -0.05521114
         - -0.04036608
       - # ring_top
-        - -0.06693
+        - -0.03693
         - 0.0171814

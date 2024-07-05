@@ -19,6 +19,7 @@ from openteach.constants import *
 class LeapHandOperator(Operator):
     def __init__(self,host,transformed_keypoints_port, finger_configs):
         self.notify_component_start('leap hand operator')
+        #joint_publisher_port = None
         self._host, self._port = host, transformed_keypoints_port
         # Subscriber for the transformed hand keypoints
         self._transformed_hand_keypoint_subscriber = ZMQKeypointSubscriber(
@@ -32,6 +33,19 @@ class LeapHandOperator(Operator):
             port = self._port,
             topic = 'transformed_hand_frame'
         )
+        '''
+        #Pulibsher for the commanded hand pose
+        self._commanded_hand_keypoint_publisher = ZMQKeypointPublisher(
+            host = self.host.strip(),
+            port = joint_publisher_port
+        )
+
+        # Publisher for the actual hand pose
+        self._actual_hand_keypoint_publisher = ZMQKeypointPublisher(
+            host = self.host.strip(),
+            port = joint_publisher_port
+        )
+        '''
         # Initializing the  finger configs
         self.finger_configs = finger_configs
         
@@ -64,7 +78,7 @@ class LeapHandOperator(Operator):
             self.thumb_angle_calculator = self._get_3d_thumb_angles
         else:
             self.thumb_angle_calculator = self._get_2d_thumb_angles
-
+        self.finger_angle_calculator = self.fingertip_solver.finger_3D_motion
     @property
     def timer(self):
         return self._timer
@@ -81,6 +95,14 @@ class LeapHandOperator(Operator):
     def transformed_hand_keypoint_subscriber(self):
         return self._transformed_hand_keypoint_subscriber
     
+    @property
+    def actual_hand_publisher(self):
+        return self._actual_hand_keypoint_publisher
+
+    @property
+    def commanded_hand_publisher(self):
+        return self._commanded_hand_keypoint_publisher
+    
     # This function differentiates between the real robot and simulation
     def return_real(self):
         return True
@@ -89,7 +111,8 @@ class LeapHandOperator(Operator):
     def _calibrate_bounds(self):
         self.notify_component_start('calibration')
         calibrator = OculusThumbBoundCalibrator(self._host, self._port)
-        self.hand_thumb_bounds = calibrator.get_bounds() # Provides [thumb-index bounds, index-middle bounds, middle-ring-bounds]
+        self.hand_thumb_bounds,self.hand_finger_bounds = calibrator.get_bounds() # Provides thumb : [top_right,bottom_right,ring_bottom,ring_top]
+        #finger{index,middle,ring: 'top right','top left', 'bottom left' , 'bottom right', 'lowest z', 'highest z'}
         print(f'THUMB BOUNDS IN THE OPERATOR: {self.hand_thumb_bounds}')
 
     def _get_finger_coords(self):
@@ -128,7 +151,7 @@ class LeapHandOperator(Operator):
                 thumb_keypoints[-3][:2],
                 thumb_keypoints[-2][:2],
                 thumb_keypoints[-1][:2]
-            )* self.rotatory_scaling_factors["thumb"]+math.pi
+            )* self.rotatory_scaling_factors["thumb"]
         
         return self.fingertip_solver.thumb_motion_3D(
             hand_coordinates = closest_point_coords,
@@ -138,7 +161,7 @@ class LeapHandOperator(Operator):
             x_robot_bound = self.leap_bounds['thumb_bounds'][0]['x_bounds'],
             moving_avg_arr = self.moving_average_queues['thumb'], 
             curr_angles = curr_angles,
-            last_joint_angle = last_joint
+            hand_joint_angle = last_joint
         )
     
 
@@ -155,12 +178,16 @@ class LeapHandOperator(Operator):
     # Apply the retargeted angles to the robot
     def _apply_retargeted_angles(self):
         hand_keypoints = self._get_finger_coords()
+        #actual_leap_hand_angle = self.robot.get_joint_position()
+        #self.actual_hand_publisher.pub_keypoints(actual_leap_hand_angle,"actual hand position")
         desired_joint_angles = copy(self.robot.get_joint_position())
         # Movement for the index finger with option to freeze the finger
         if not self.finger_configs['freeze_index'] and not self.finger_configs['no_index']:
-            desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
+            desired_joint_angles = self.finger_angle_calculator(#self.finger_joint_solver.calculate_finger_angles
                 finger_type = 'index',
-                finger_joint_coords = hand_keypoints['index'],
+                finger_keypoints = hand_keypoints['index'],#hand_keypoints['index]
+                hand_bound = self.hand_finger_bounds['index'],
+                robot_bound = self.leap_bounds['index'],
                 curr_angles = desired_joint_angles,
                 moving_avg_arr = self.moving_average_queues['index']
             )
@@ -170,8 +197,26 @@ class LeapHandOperator(Operator):
         else:
             print("No index")
             pass
+        
+        # Movement for the index finger with option to freeze the finger
+        if not self.finger_configs['freeze_middle'] and not self.finger_configs['no_middle']:
+            desired_joint_angles = self.finger_angle_calculator(#self.finger_joint_solver.calculate_finger_angles
+                finger_type = 'middle',
+                finger_keypoints = hand_keypoints['middle'],#hand_keypoints['index]
+                hand_bound = self.hand_finger_bounds['middle'],
+                robot_bound = self.leap_bounds['middle'],
+                curr_angles = desired_joint_angles,
+                moving_avg_arr = self.moving_average_queues['middle']
+            )
+            #print((desired_joint_angles[0]-math.pi)*180/math.pi)
+        elif self.finger_configs['freeze_middle']:
+            self._generate_frozen_angles(desired_joint_angles, 'middle')
+        else:
+            print("No middle")
+            pass
 
-        # Movement for the middle finger option to freeze the finger
+        '''
+        # Movement for the middle finger option to freeze the finger joint angle based. 
         if not self.finger_configs['freeze_middle'] and not self.finger_configs['no_middle']:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
                 finger_type = 'middle',
@@ -184,7 +229,26 @@ class LeapHandOperator(Operator):
         else :
             print("No Middle")
             pass
+            
+        '''
 
+        # Movement for the index finger with option to freeze the finger
+        if not self.finger_configs['freeze_ring'] and not self.finger_configs['no_ring']:
+            desired_joint_angles = self.finger_angle_calculator(#self.finger_joint_solver.calculate_finger_angles
+                finger_type = 'ring',
+                finger_keypoints = hand_keypoints['ring'],#hand_keypoints['index]
+                hand_bound = self.hand_finger_bounds['ring'],
+                robot_bound = self.leap_bounds['ring'],
+                curr_angles = desired_joint_angles,
+                moving_avg_arr = self.moving_average_queues['ring']
+            )
+            #print((desired_joint_angles[0]-math.pi)*180/math.pi)
+        elif self.finger_configs['freeze_ring']:
+            self._generate_frozen_angles(desired_joint_angles, 'ring')
+        else:
+            print("No ring")
+            pass
+        '''
         # Movement for the ring finger option to freeze the finger
         if not self.finger_configs['freeze_ring'] and not self.finger_configs['no_ring']:
             desired_joint_angles = self.finger_joint_solver.calculate_finger_angles(
@@ -198,7 +262,7 @@ class LeapHandOperator(Operator):
         else: 
             print("No ring")
             pass
-
+        '''
         
         # Movement for the thumb finger with option to freeze the finger
         if not self.finger_configs['freeze_thumb'] and not self.finger_configs['no_thumb']:
@@ -210,4 +274,5 @@ class LeapHandOperator(Operator):
             pass
         
         # Move the robot 
+        #self.commanded_hand_publisher.pub_keypoints(desired_joint_angles,"commanded_hand_joint")
         self.robot.move(desired_joint_angles)

@@ -107,17 +107,18 @@ class LeapKDLControl(LeapKinematicControl):
     def __init__(self,  bounded_angles = True):
         super().__init__(bounded_angles)
         self.solver = LeapKDL()
-
+        self.finger_joint_solver = LeapJointControl()
     def calculate_desired_angles(
         self, 
         finger_type, 
         transformed_coords, 
         moving_avg_arr, 
-        curr_angles
+        curr_angles,
+        hand_joint_angles
     ):
         curr_finger_angles = self._get_curr_finger_angles(curr_angles, finger_type)        
         avg_finger_coords = moving_average(transformed_coords, moving_avg_arr, self.time_steps)    
-        calc_finger_angles = self.solver.finger_inverse_kinematics(finger_type, avg_finger_coords, curr_finger_angles)
+        calc_finger_angles = self.solver.finger_inverse_kinematics(finger_type, avg_finger_coords, curr_finger_angles,hand_joint_angles)
         
         desired_angles = np.array(copy(curr_angles))
 
@@ -204,31 +205,6 @@ class LeapKDLControl(LeapKinematicControl):
         desired_angles = self.calculate_desired_angles(finger_type, transformed_coords, moving_avg_arr, curr_angles)
         return desired_angles
 
-    def finger_3D_motion(
-        self, 
-        finger_type, 
-        hand_x_val, 
-        hand_y_val, 
-        hand_z_val, 
-        x_hand_bound, 
-        y_hand_bound, 
-        z_hand_bound, 
-        x_robot_bound, 
-        y_robot_bound, 
-        z_robot_bound, 
-        moving_avg_arr, 
-        curr_angles
-    ):
-        '''
-        For 3D control in all directions - used in ring finger at a varied depth
-        '''
-        x_robot_coord = linear_transform(hand_z_val, z_hand_bound, x_robot_bound)
-        y_robot_coord = linear_transform(hand_x_val, x_hand_bound, y_robot_bound)
-        z_robot_coord = linear_transform(hand_y_val, y_hand_bound, z_robot_bound)
-        transformed_coords = [x_robot_coord, y_robot_coord, z_robot_coord]
-
-        desired_angles = self.calculate_desired_angles(finger_type, transformed_coords, moving_avg_arr, curr_angles)
-        return desired_angles
 
     def thumb_motion_2D(
         self, 
@@ -263,7 +239,7 @@ class LeapKDLControl(LeapKinematicControl):
         x_robot_bound, 
         moving_avg_arr, 
         curr_angles,
-        last_joint_angle
+        hand_joint_angle
     ):
         '''
         For 3D control in all directions - human bounds are mapped to robot bounds with varied depth
@@ -276,6 +252,42 @@ class LeapKDLControl(LeapKinematicControl):
              
         z_robot_coord = linear_transform(hand_coordinates[2], z_hand_bound, x_robot_bound)
         transformed_coords = [x_robot_coord, y_robot_coord, z_robot_coord]
-        desired_angles = self.calculate_desired_angles('thumb', transformed_coords, moving_avg_arr, curr_angles)
-        desired_angles[-1]=last_joint_angle
+        desired_angles = self.calculate_desired_angles('thumb', transformed_coords, moving_avg_arr, curr_angles,hand_joint_angles=hand_joint_angle)
+        return desired_angles
+    
+
+    def finger_3D_motion(
+        self, 
+        finger_type, 
+        finger_keypoints,
+        hand_bound, 
+        robot_bound, 
+        moving_avg_arr, 
+        curr_angles,
+    ):
+        translatory_angles = []
+        for idx in range(self.hand_configs['joints_per_finger'] - 1): # Ignoring the rotatory joint
+            angle = calculate_angle_yz_plane(
+                finger_keypoints[idx],
+                finger_keypoints[idx + 1],
+                finger_keypoints[idx + 2]
+            )
+            translatory_angles.append(angle * self.finger_joint_solver.linear_scaling_factors[idx])
+
+        rotatory_angle = [self.finger_joint_solver.calculate_finger_rotation(finger_keypoints,finger_type) * self.finger_joint_solver.rotatory_scaling_factors[finger_type]] 
+        calc_finger_angles = rotatory_angle + translatory_angles
+
+        '''
+        For 3D control in all directions - used in ring finger at a varied depth
+        '''
+        #print("finger_key point", finger_keypoints)
+        #print("hand_bound",hand_bound)
+        #print("robot_bound ",robot_bound)
+        x_robot_coord = linear_transform(finger_keypoints[-1][0], hand_bound[1], robot_bound[0]['x_bounds'])
+        y_robot_coord = linear_transform(finger_keypoints[-1][1], hand_bound[0], robot_bound[0]['y_bounds'])
+        z_robot_coord = linear_transform(finger_keypoints[-1][2], hand_bound[2], robot_bound[0]['z_bounds'])
+        transformed_coords = [y_robot_coord, x_robot_coord, z_robot_coord]
+        #print("transformed_coord",transformed_coords)
+        desired_angles = self.calculate_desired_angles(finger_type, transformed_coords, moving_avg_arr, curr_angles,calc_finger_angles)
+        #print("angle, ",desired_angles[0:4])
         return desired_angles

@@ -92,6 +92,7 @@ DEPTH_PORT_OFFSET = 1000
 # Calibration file paths
 CALIBRATION_FILES_PATH = 'calibration_files'
 VR_THUMB_BOUNDS_PATH = path.join(CALIBRATION_FILES_PATH, 'vr_thumb_bounds.npy')
+VR_FINGER_BOUNDS_PATH = path.join(CALIBRATION_FILES_PATH, 'vr_finger_bounds.npy')
 VR_DISPLAY_THUMB_BOUNDS_PATH = path.join(CALIBRATION_FILES_PATH, 'vr_thumb_plot_bounds.npy')
 VR_2D_PLOT_SAVE_PATH = path.join(CALIBRATION_FILES_PATH, 'oculus_hand_2d_plot.jpg')
 XELA_PLOT_SAVE_PATH = path.join(CALIBRATION_FILES_PATH, 'xela_plot.png')
