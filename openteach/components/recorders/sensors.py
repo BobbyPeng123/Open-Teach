@@ -139,3 +139,4 @@ class ReskinSensorZMQRecorder(Recorder):
             # Other metadata 
             hf.update(self.metadata)
         print('Saved Reskin sensor data in {}'.format(self._recorder_file_name))
+        print('ReSkin Data duration: ', self.sensor_information['timestamp'][-1] - self.sensor_information['timestamp'][0])

@@ -94,6 +94,7 @@ class RGBImageRecorder(Recorder):
         store_pickle_data(self._metadata_filename, self.metadata)
         print('Stored the video in {}.'.format(self._recorder_file_name))
         print('Stored the metadata in {}.'.format(self._metadata_filename))
+        print(f'{self._filename} Data duration: ', (self.timestamps[-1] - self.timestamps[0]) / 1000.)
 
 
 class DepthImageRecorder(Recorder):
