@@ -20,6 +20,7 @@ class LeapKDL(object):
                     self.finger_configs['links_info']['base']['link'], 
                     self.finger_configs['links_info'][finger]['link']
                 ], 
+                    #last_link_vector=np.array([0,0.0356717,0]),#length of last link
                 name = finger
             )
                     
@@ -89,9 +90,11 @@ class LeapKDL(object):
             #print(len(output_angles))
             return output_angles[1:5]
         else:
-            seed = [0,0,0,0,0]
-            seed[-1] = hand_joint_angles[-1]
-            output_angles = self.chains[finger_type].inverse_kinematics(input_position,initial_position = seed,optimizer = 'scalar',max_iter = 15)
+            #seed = [0,0,0,0,0,0]
+            seed = list(hand_joint_angles)
+            seed[0],seed[1]=seed[1],seed[0]
+            seed.insert(0,0)
+            output_angles = self.chains[finger_type].inverse_kinematics(input_position,initial_position = seed,optimizer = 'scalar',max_iter = 20)
             output_angles = self.allegro_to_leap(output_angles)
             
             first_element = output_angles[1] # ignore the first one in output_angle

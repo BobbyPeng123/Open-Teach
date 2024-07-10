@@ -241,15 +241,42 @@ class LeapKDLControl(LeapKinematicControl):
         curr_angles,
         hand_joint_angle
     ):
+        
+        new_xy_hand_bounds = copy(xy_hand_bounds)
+        new_yz_robot_bounds = copy(yz_robot_bounds)
+        #print(xy_hand_bounds)
+        top = xy_hand_bounds[0][1]
+        bottom = xy_hand_bounds[1][1]
+        middle = 0.023001949460838483
+        robot_middle = 0.0230578
+        robot_top = yz_robot_bounds[0][1]
+        robot_bottom = yz_robot_bounds[1][1]
+        #print(yz_robot_bounds)
+        #print(hand_coordinates[0])
+        if hand_coordinates[0]<middle:
+            new_xy_hand_bounds[0]=np.array([middle,top])
+            new_xy_hand_bounds[1]=np.array([middle,bottom])
+            new_yz_robot_bounds[0]=np.array([robot_middle,robot_top])
+            new_yz_robot_bounds[1]=np.array([robot_middle,robot_bottom])
+            y_robot_coord, x_robot_coord = persperctive_transform(
+            (hand_coordinates[0], hand_coordinates[1]), 
+            new_xy_hand_bounds, 
+            new_yz_robot_bounds)
+        else:  
+            new_xy_hand_bounds[-1]=np.array([middle,top])
+            new_xy_hand_bounds[2]=np.array([middle,bottom])
+            new_yz_robot_bounds[-1]=np.array([robot_middle,robot_top])
+            new_yz_robot_bounds[2]=np.array([robot_middle,robot_bottom])
+            y_robot_coord, x_robot_coord = persperctive_transform(
+            (hand_coordinates[0], hand_coordinates[1]), 
+            new_xy_hand_bounds, 
+            new_yz_robot_bounds
+        )
+
         '''
         For 3D control in all directions - human bounds are mapped to robot bounds with varied depth
         '''
-        y_robot_coord, x_robot_coord = persperctive_transform(
-            (hand_coordinates[0], hand_coordinates[1]), 
-            xy_hand_bounds, 
-            yz_robot_bounds
-        )
-             
+        
         z_robot_coord = linear_transform(hand_coordinates[2], z_hand_bound, x_robot_bound)
         transformed_coords = [x_robot_coord, y_robot_coord, z_robot_coord]
         desired_angles = self.calculate_desired_angles('thumb', transformed_coords, moving_avg_arr, curr_angles,hand_joint_angles=hand_joint_angle)
@@ -287,7 +314,7 @@ class LeapKDLControl(LeapKinematicControl):
         y_robot_coord = linear_transform(finger_keypoints[-1][1], hand_bound[0], robot_bound[0]['y_bounds'])
         z_robot_coord = linear_transform(finger_keypoints[-1][2], hand_bound[2], robot_bound[0]['z_bounds'])
         transformed_coords = [y_robot_coord, x_robot_coord, z_robot_coord]
-        #print("transformed_coord",transformed_coords)
+        #print(finger_type," transformed_coord ",transformed_coords)
         desired_angles = self.calculate_desired_angles(finger_type, transformed_coords, moving_avg_arr, curr_angles,calc_finger_angles)
         #print("angle, ",desired_angles[0:4])
         return desired_angles
