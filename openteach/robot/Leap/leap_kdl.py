@@ -14,15 +14,27 @@ class LeapKDL(object):
         # Parsing chains from the urdf file
         self.chains = {}
         for finger in self.hand_configs['fingers'].keys():
-            self.chains[finger] = chain.Chain.from_urdf_file(
-                urdf_path, 
-                base_elements = [
-                    self.finger_configs['links_info']['base']['link'], 
-                    self.finger_configs['links_info'][finger]['link']
-                ], 
-                    #last_link_vector=np.array([0,0.0356717,0]),#length of last link
-                name = finger
-            )
+            if finger != 'thumb':
+                self.chains[finger] = chain.Chain.from_urdf_file(
+                    urdf_path, 
+                    base_elements = [
+                        self.finger_configs['links_info']['base']['link'], 
+                        self.finger_configs['links_info'][finger]['link']
+                    ], 
+                        last_link_vector=np.array([0,-0.0367733,0]),#length of last link
+                    name = finger
+                )
+            else:
+                self.chains[finger] = chain.Chain.from_urdf_file(
+                    urdf_path, 
+                    base_elements = [
+                        self.finger_configs['links_info']['base']['link'], 
+                        self.finger_configs['links_info'][finger]['link']
+                    ], 
+                        last_link_vector=np.array([0,-0.0367733,0]),#length of last link
+                    name = finger
+                )
+
                     
     def finger_forward_kinematics(self, finger_type, input_angles):
         # Checking if the number of angles is equal to 4
@@ -82,8 +94,8 @@ class LeapKDL(object):
         #print("Input Position ",input_position)
         #print("Output ",output_angles)
         if finger_type=='thumb':
-            seed = [0,0,0,0,0]
-            seed[-1]=hand_joint_angles
+            seed = [0,0,0,0,0,0]
+            seed[-2]=hand_joint_angles
             output_angles = self.chains[finger_type].inverse_kinematics(input_position,initial_position = seed,optimizer = 'least_squares')
             output_angles = self.allegro_to_leap(output_angles)
             #print(self.chains['thumb'])
@@ -94,6 +106,7 @@ class LeapKDL(object):
             seed = list(hand_joint_angles)
             seed[0],seed[1]=seed[1],seed[0]
             seed.insert(0,0)
+            seed.append(0)
             output_angles = self.chains[finger_type].inverse_kinematics(input_position,initial_position = seed,optimizer = 'scalar',max_iter = 20)
             output_angles = self.allegro_to_leap(output_angles)
             
