@@ -8,7 +8,6 @@ def normalize_vector(vector):
 
 def moving_average(vector, moving_average_queue, limit):
     moving_average_queue.append(vector)
-
     if len(moving_average_queue) > limit:
         moving_average_queue.pop(0)
 
@@ -34,6 +33,14 @@ def persperctive_transform(input_coordinates, given_bound, target_bound):
     closest_point = nearest_points(planar_thumb_bounds, planar_point)[0]
     return closest_point.x, closest_point.y
 
+def is_fingertip_stationary(queue,coord,limit,distance_threshold):
+    if len(queue) ==0 or np.linalg.norm(np.array(queue[-1]) - np.array(coord))>distance_threshold:
+        queue.append(coord)
+
+    if len(queue)> limit:
+        queue.pop(0)
+
+    return queue[-1] 
 
 def calculate_angle_between_vectors(vector_1,vector_2):
 

@@ -1,28 +1,29 @@
 # Joint movement bound per input coordinate
 jointwise_angle_bounds: 
   # Index finger angles
-  - 0.05
   - 0.2
-  - 0.2
-  - 0.2
+  - 0.4
+  - 0.4
+  - 0.4
   # Middle finger angles
-  - 0.05
   - 0.2
-  - 0.2
-  - 0.2
+  - 0.4
+  - 0.4
+  - 0.4
   # Ring finger angles
-  - 0.05
   - 0.2
-  - 0.2
-  - 0.2
+  - 0.4
+  - 0.4
+  - 0.4
   # Thumb finger angles
-  - 0.2
-  - 0.1
-  - 0.2
-  - 0.2
+  - 0.4
+  - 0.4
+  - 0.4
+  - 0.4
 
 # Moving average time steps
 time_steps: 1
+time_steps_joint : 3
 
 # Angle scaling factors
 linear_scaling_factors: [1.1, 1.3, 1.1]

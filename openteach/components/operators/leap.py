@@ -63,6 +63,8 @@ class LeapHandOperator(Operator):
             'ring': []
         }
 
+        self.joint_angle_queues = []
+
         # Calibrating to get the thumb bounds
         self._calibrate_bounds()
 
@@ -272,7 +274,9 @@ class LeapHandOperator(Operator):
         else:
             print("No thumb")
             pass
-        
+        #print(self.moving_average_queues)
         # Move the robot 
         #self.commanded_hand_publisher.pub_keypoints(desired_joint_angles,"commanded_hand_joint")
-        self.robot.move(desired_joint_angles)
+        #print(desired_joint_angles)
+        desired_joint_angles = moving_average(np.array(desired_joint_angles),self.joint_angle_queues,self.bound_info['time_steps_joint'])
+        self.robot.move(list(desired_joint_angles))
