@@ -102,7 +102,7 @@ class ReskinStreamer(object):
 class MonitoringApplication(object):
     def __init__(self, configs):
         # Loading the network configurations
-        self.camera_address = configs.camera_address
+        self.host_address = configs.host_address
         self.keypoint_port = configs.keypoint_port
         self.port_offset = configs.cam_port_offset
         self.num_cams = len(configs.robot_cam_serial_numbers)
@@ -137,14 +137,14 @@ class MonitoringApplication(object):
         for idx in range(self.num_cams):
             self.cam_streamers.append(
                 VideoStreamer(
-                    host = self.camera_address,
+                    host = self.host_address,
                     cam_port = self.port_offset + idx
                 )
             )
 
     def _init_reskin_streamer(self):
         self.reskin_streamer = ReskinStreamer(
-            host = self.camera_address,
+            host = self.host_address,
             reskin_port = self.reskin_port,
             num_mags = self.reskin_num_mags
         )
