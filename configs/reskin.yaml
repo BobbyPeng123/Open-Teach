@@ -11,6 +11,7 @@ stream_configs:
 reskin_config:
   port: ${reskin_port}
   num_mags: ${reskin_num_mags}
+  history: 40
 
 hydra:  
   output_subdir: null  

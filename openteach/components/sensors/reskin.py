@@ -1,3 +1,4 @@
+from collections import deque
 import time
 from openteach.utils.network import ZMQKeypointPublisher, ZMQKeypointSubscriber
 from openteach.utils.timer import FrequencyTimer
@@ -15,6 +16,10 @@ class ReskinSensorPublisher(Component):
 
         self.timer = FrequencyTimer(100)
         self.reskin_config = reskin_config
+        if reskin_config.history is not None:
+            self.history = deque(maxlen=reskin_config.history)
+        else:
+            self.history = deque(maxlen=1)
         self._start_reskin()
 
     def _start_reskin(self):
@@ -40,6 +45,8 @@ class ReskinSensorPublisher(Component):
                 data_dict = {}
                 data_dict["timestamp"] = reskin_state.time
                 data_dict["sensor_values"] = reskin_state.data
+                self.history.append(reskin_state.data)
+                data_dict["sensor_history"] = list(self.history)
                 self.reskin_publisher.pub_keypoints(data_dict, topic_name='reskin')
                 self.timer.end_loop()
 
