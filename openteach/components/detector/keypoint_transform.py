@@ -76,11 +76,8 @@ class TransformHandPositionCoords(Component):
             try:
                 self.timer.start_loop()
                 data_type, hand_coords = self._get_hand_coords()
-
-               
                 # Shift the points to required axes
                 transformed_hand_coords, translated_hand_coord_frame = self.transform_keypoints(hand_coords)
-
                 # Passing the transformed coords into a moving average
                 self.averaged_hand_coords = moving_average(
                     transformed_hand_coords, 

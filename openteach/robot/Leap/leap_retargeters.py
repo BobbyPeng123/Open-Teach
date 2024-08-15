@@ -288,7 +288,7 @@ class LeapKDLControl(LeapKinematicControl):
         )
         '''
         '''
-        For 3D control in all directions - human bounds are mapped to robot bounds with varied depth
+        #For 3D control in all directions - human bounds are mapped to robot bounds with varied depth
         '''
         
         z_robot_coord = linear_transform(hand_coordinates[2], z_hand_bound, x_robot_bound)

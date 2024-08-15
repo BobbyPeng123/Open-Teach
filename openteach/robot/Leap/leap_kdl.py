@@ -14,26 +14,16 @@ class LeapKDL(object):
         # Parsing chains from the urdf file
         self.chains = {}
         for finger in self.hand_configs['fingers'].keys():
-            if finger != 'thumb':
-                self.chains[finger] = chain.Chain.from_urdf_file(
-                    urdf_path, 
-                    base_elements = [
-                        self.finger_configs['links_info']['base']['link'], 
-                        self.finger_configs['links_info'][finger]['link']
+            self.chains[finger] = chain.Chain.from_urdf_file(
+                urdf_path, 
+                base_elements = [
+                    self.finger_configs['links_info']['base']['link'], 
+                    self.finger_configs['links_info'][finger]['link']
                     ], 
-                        last_link_vector=np.array([0,-0.0367733,0]),#length of last link
-                    name = finger
+                    #last_link_vector=np.array([0,-0.0367733,0]),#length of last link
+                name = finger
                 )
-            else:
-                self.chains[finger] = chain.Chain.from_urdf_file(
-                    urdf_path, 
-                    base_elements = [
-                        self.finger_configs['links_info']['base']['link'], 
-                        self.finger_configs['links_info'][finger]['link']
-                    ], 
-                        last_link_vector=np.array([0,-0.0367733,0]),#length of last link
-                    name = finger
-                )
+            
 
                     
     def finger_forward_kinematics(self, finger_type, input_angles):

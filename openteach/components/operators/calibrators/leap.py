@@ -115,7 +115,6 @@ class OculusThumbBoundCalibrator(object):
         return np.array(result)
         
 
-
     def _calibrate(self):
         _ = input("Place the thumb in the top right corner.")
         top_right_coord = np.array(self._get_thumb_xy_coords())
