@@ -1,4 +1,4 @@
-name: openteach
+name: chain
 channels:
   - defaults
 dependencies:
